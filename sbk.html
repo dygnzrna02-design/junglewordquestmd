@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jungle Word Quest — Sentence Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Nunito:wght@400;600;700;800&family=Fredoka+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Nunito:wght@400;600;700;800&family=Fredoka+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root {
+  --jungle-dark: #1a2e1a;
+  --jungle-deep: #0d1f0d;
+  --leaf-dark: #2d5a27;
+  --leaf-mid: #3d7a35;
+  --leaf-light: #5aaa4a;
+  --gold: #d4a017;
+  --gold-light: #f0c040;
+  --gold-pale: #fde68a;
+  --amber: #b45309;
+  --stone: #78716c;
+  --stone-light: #d6d0c4;
+  --cream: #fefce8;
+  --parchment: #fdf3c8;
+  --red-berry: #c0392b;
+  --sky-blue: #0ea5e9;
+  --blue-noun: #1d4ed8;
+  --green-verb: #15803d;
+  --orange-adj: #c2410c;
+  --purple-prep: #7c3aed;
+  --pink-art: #be185d;
+  --yellow-adv: #a16207;
+  --shadow: rgba(0,0,0,0.5);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--jungle-deep);
+  color: var(--cream);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ===== BACKGROUND JUNGLE ===== */
+.jungle-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(180deg, #0a1a0a 0%, #1a3a1a 40%, #0d2a0d 100%);
+  overflow: hidden;
+}
+
+.jungle-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse at 20% 80%, rgba(61,122,53,0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(45,90,39,0.25) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 100%, rgba(29,63,20,0.4) 0%, transparent 40%);
+}
+
+.vine { position: absolute; width: 4px; border-radius: 4px; background: linear-gradient(180deg, transparent, #2d5a27, #1a3a12); animation: swayVine 6s ease-in-out infinite; transform-origin: top center; }
+.vine:nth-child(1) { left: 5%; height: 200px; top: 0; animation-delay: 0s; }
+.vine:nth-child(2) { left: 15%; height: 160px; top: 0; animation-delay: 1s; }
+.vine:nth-child(3) { right: 8%; height: 220px; top: 0; animation-delay: 0.5s; }
+.vine:nth-child(4) { right: 20%; height: 180px; top: 0; animation-delay: 1.5s; }
+.vine:nth-child(5) { left: 45%; height: 140px; top: 0; animation-delay: 2s; }
+
+@keyframes swayVine { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(5deg)} }
+
+.leaf-bg { position: absolute; font-size: 48px; opacity: 0.12; animation: floatLeaf 8s ease-in-out infinite; pointer-events: none; }
+
+@keyframes floatLeaf { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-15px) rotate(8deg)} }
+
+/* ===== FIREFLIES ===== */
+.firefly {
+  position: fixed;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: #fde68a;
+  box-shadow: 0 0 6px 3px rgba(253,230,138,0.8);
+  animation: fireflyFloat 8s ease-in-out infinite, fireflyBlink 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes fireflyFloat {
+  0%{transform:translate(0,0)} 25%{transform:translate(30px,-40px)} 50%{transform:translate(-20px,-60px)} 75%{transform:translate(40px,-30px)} 100%{transform:translate(0,0)}
+}
+@keyframes fireflyBlink { 0%,100%{opacity:0.9} 50%{opacity:0.1} }
+
+/* Paste this rule inside your <style> tag around line 80 */
+.user-branding {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  font-family: 'Press Start 2P', system-ui; /* Applies your retro pixel font */
+  font-size: 0.65rem;                        /* Keeps it a tiny, crisp size */
+  color: var(--gold-pale);                   /* Uses your custom jungle pale gold color! */
+  letter-spacing: 0.5px;
+  z-index: 10;                               /* Keeps it resting clearly above the backgrounds */
+}
+
+/* ===== LAYOUT ===== */
+.app { position: relative; z-index: 2; max-width: 1100px; margin: 0 auto; padding: 0 16px 60px; }
+
+/* ===== HEADER ===== */
+.hero {
+  text-align: center;
+  padding: 40px 20px 30px;
+  position: relative;
+}
+
+.hero-badge {
+  display: inline-block;
+  background: rgba(212,160,23,0.2);
+  border: 1px solid var(--gold);
+  color: var(--gold-light);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding: 5px 16px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+}
+
+.hero-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(28px, 5vw, 52px);
+  color: var(--gold-light);
+  text-shadow: 0 0 30px rgba(212,160,23,0.6), 2px 2px 0 #7a5000;
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+
+.hero-sub {
+  font-size: 16px;
+  color: rgba(253,230,138,0.75);
+  font-weight: 600;
+}
+
+/* ===== NAV TABS ===== */
+.nav-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 24px 0;
+  flex-wrap: wrap;
+}
+
+.nav-tab {
+  background: rgba(45,90,39,0.3);
+  border: 1.5px solid rgba(90,170,74,0.3);
+  color: rgba(253,230,138,0.8);
+  padding: 10px 22px;
+  border-radius: 30px;
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex; align-items: center; gap: 8px;
+}
+.nav-tab:hover { background: rgba(45,90,39,0.6); border-color: var(--gold); color: var(--gold-light); }
+.nav-tab.active { background: var(--leaf-dark); border-color: var(--gold-light); color: var(--gold-light); box-shadow: 0 0 16px rgba(212,160,23,0.35); }
+.nav-tab .tab-icon { font-size: 18px; }
+
+/* ===== SECTIONS ===== */
+.section { display: none; }
+.section.active { display: block; }
+
+/* ===== LEVEL SELECTOR ===== */
+.level-bar {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.level-btn {
+  padding: 10px 28px;
+  border-radius: 30px;
+  border: 2px solid;
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 8px;
+}
+.level-btn.low { border-color: #4ade80; color: #4ade80; background: rgba(74,222,128,0.1); }
+.level-btn.low.active, .level-btn.low:hover { background: rgba(74,222,128,0.25); box-shadow: 0 0 12px rgba(74,222,128,0.4); }
+.level-btn.med { border-color: #fb923c; color: #fb923c; background: rgba(251,146,60,0.1); }
+.level-btn.med.active, .level-btn.med:hover { background: rgba(251,146,60,0.25); box-shadow: 0 0 12px rgba(251,146,60,0.4); }
+.level-btn.high { border-color: #c084fc; color: #c084fc; background: rgba(192,132,252,0.1); }
+.level-btn.high.active, .level-btn.high:hover { background: rgba(192,132,252,0.25); box-shadow: 0 0 12px rgba(192,132,252,0.4); }
+
+/* ===== COLOUR KEY ===== */
+.colour-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.key-chip {
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 800;
+  border: 1.5px solid;
+  letter-spacing: 0.5px;
+}
+.key-noun { background: rgba(29,78,216,0.25); border-color: #60a5fa; color: #93c5fd; }
+.key-verb { background: rgba(21,128,61,0.25); border-color: #4ade80; color: #86efac; }
+.key-adj { background: rgba(194,65,12,0.25); border-color: #fb923c; color: #fdba74; }
+.key-art { background: rgba(190,24,93,0.25); border-color: #f472b6; color: #f9a8d4; }
+.key-prep { background: rgba(124,58,237,0.25); border-color: #a78bfa; color: #c4b5fd; }
+.key-adv { background: rgba(161,98,7,0.25); border-color: #fbbf24; color: #fde68a; }
+
+/* ===== WORD SLOTS ===== */
+.sentence-builder {
+  background: rgba(10,25,10,0.7);
+  border: 1px solid rgba(90,170,74,0.3);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.slot-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.word-slot {
+  min-width: 90px;
+  min-height: 52px;
+  border-radius: 10px;
+  border: 2px dashed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 16px;
+  padding: 4px 8px;
+  text-align: center;
+  transition: all 0.2s;
+  position: relative;
+  cursor: default;
+}
+
+.slot-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+.word-slot.noun-slot { border-color: #3b82f6; color: #93c5fd; }
+.word-slot.verb-slot { border-color: #22c55e; color: #86efac; }
+.word-slot.adj-slot { border-color: #f97316; color: #fdba74; }
+.word-slot.art-slot { border-color: #ec4899; color: #f9a8d4; }
+.word-slot.prep-slot { border-color: #8b5cf6; color: #c4b5fd; }
+.word-slot.adv-slot { border-color: #eab308; color: #fde68a; }
+.word-slot.filled { background: rgba(45,90,39,0.35); cursor: pointer; }
+.word-slot.filled:hover { opacity: 0.7; }
+
+/* ===== WORD BANK ===== */
+.word-bank {
+  background: rgba(10,25,10,0.5);
+  border: 1px solid rgba(90,170,74,0.2);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.word-bank-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 13px;
+  color: var(--gold);
+  margin-bottom: 14px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.words-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.word-chip {
+  padding: 8px 16px;
+  border-radius: 24px;
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+  border: 2px solid;
+  transition: all 0.2s;
+  user-select: none;
+}
+.word-chip:hover { transform: scale(1.08); }
+.word-chip.used { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+.word-chip.noun { background: rgba(29,78,216,0.3); border-color: #3b82f6; color: #bfdbfe; }
+.word-chip.verb { background: rgba(21,128,61,0.3); border-color: #22c55e; color: #bbf7d0; }
+.word-chip.adj { background: rgba(194,65,12,0.3); border-color: #f97316; color: #fed7aa; }
+.word-chip.art { background: rgba(190,24,93,0.3); border-color: #ec4899; color: #fce7f3; }
+.word-chip.prep { background: rgba(124,58,237,0.3); border-color: #8b5cf6; color: #ede9fe; }
+.word-chip.adv { background: rgba(161,98,7,0.3); border-color: #eab308; color: #fef08a; }
+
+/* ===== BUILT SENTENCE DISPLAY ===== */
+.sentence-display {
+  min-height: 60px;
+  background: rgba(253,230,138,0.08);
+  border: 1.5px solid rgba(212,160,23,0.4);
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 22px;
+  color: var(--gold-pale);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+  line-height: 1.5;
+}
+
+.sentence-word-display {
+  padding: 2px 10px;
+  border-radius: 8px;
+  font-size: 20px;
+}
+.sentence-word-display.noun { color: #93c5fd; }
+.sentence-word-display.verb { color: #86efac; }
+.sentence-word-display.adj { color: #fdba74; }
+.sentence-word-display.art { color: #f9a8d4; }
+.sentence-word-display.prep { color: #c4b5fd; }
+.sentence-word-display.adv { color: #fde68a; }
+
+/* ===== ACTION BUTTONS ===== */
+.action-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.btn-jungle {
+  padding: 10px 24px;
+  border-radius: 24px;
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+  border: 2px solid;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-clear { background: rgba(185,28,28,0.2); border-color: #ef4444; color: #fca5a5; }
+.btn-clear:hover { background: rgba(185,28,28,0.4); }
+.btn-check { background: rgba(21,128,61,0.3); border-color: #22c55e; color: #bbf7d0; }
+.btn-check:hover { background: rgba(21,128,61,0.5); }
+.btn-hint { background: rgba(161,98,7,0.3); border-color: #eab308; color: #fef08a; }
+.btn-hint:hover { background: rgba(161,98,7,0.5); }
+
+/* ===== FEEDBACK ===== */
+.feedback-box {
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  display: none;
+  animation: popIn 0.3s ease;
+}
+.feedback-box.success { background: rgba(21,128,61,0.3); border: 1.5px solid #22c55e; color: #bbf7d0; display: block; }
+.feedback-box.error { background: rgba(185,28,28,0.3); border: 1.5px solid #ef4444; color: #fca5a5; display: block; }
+.feedback-box.info { background: rgba(161,98,7,0.3); border: 1.5px solid #eab308; color: #fef08a; display: block; }
+@keyframes popIn { 0%{transform:scale(0.8);opacity:0} 100%{transform:scale(1);opacity:1} }
+
+/* ===== PICTURE PROMPT ===== */
+.picture-prompt {
+  background: rgba(10,25,10,0.6);
+  border: 1.5px solid rgba(90,170,74,0.3);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.picture-emoji { font-size: 72px; line-height: 1; margin-bottom: 10px; filter: drop-shadow(0 0 16px rgba(212,160,23,0.5)); }
+.picture-caption { font-size: 13px; color: rgba(253,230,138,0.6); font-style: italic; }
+
+/* ===== CARD WRAPPER ===== */
+.card-wrap {
+  background: rgba(13,31,13,0.6);
+  border: 1px solid rgba(90,170,74,0.2);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.section-heading {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 18px;
+  color: var(--gold);
+  margin-bottom: 6px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.section-sub {
+  font-size: 13px;
+  color: rgba(253,230,138,0.55);
+  margin-bottom: 18px;
+}
+
+/* ===== GAME AREA ===== */
+#game-area {
+  position: relative;
+  min-height: 420px;
+  background: rgba(10,25,10,0.7);
+  border: 2px solid rgba(90,170,74,0.35);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.game-scene-img {
+  font-size: 100px;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 0 20px rgba(212,160,23,0.4));
+  animation: sceneBob 3s ease-in-out infinite;
+}
+@keyframes sceneBob { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-8px)} }
+
+.game-prompt {
+  position: absolute;
+  top: 14px;
+  left: 0; right: 0;
+  text-align: center;
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 13px;
+  color: var(--gold);
+  padding: 0 16px;
+}
+
+.floating-word {
+  position: absolute;
+  padding: 8px 18px;
+  border-radius: 24px;
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 16px;
+  cursor: pointer;
+  border: 2.5px solid;
+  animation: floatWord 4s ease-in-out infinite;
+  transition: transform 0.15s, box-shadow 0.15s;
+  user-select: none;
+  z-index: 10;
+}
+.floating-word:hover { transform: scale(1.15); box-shadow: 0 0 16px rgba(212,160,23,0.6); }
+.floating-word.caught { animation: catchPop 0.4s ease forwards; pointer-events: none; }
+@keyframes floatWord {
+  0%{transform:translateY(0) rotate(-3deg)}
+  33%{transform:translateY(-18px) rotate(3deg)}
+  66%{transform:translateY(-8px) rotate(-2deg)}
+  100%{transform:translateY(0) rotate(-3deg)}
+}
+@keyframes catchPop { 0%{transform:scale(1)} 50%{transform:scale(1.4)} 100%{transform:scale(0);opacity:0} }
+
+.game-sentence-area {
+  min-height: 56px;
+  background: rgba(253,230,138,0.08);
+  border: 1.5px solid rgba(212,160,23,0.4);
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 20px;
+  color: var(--gold-pale);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.game-target {
+  background: rgba(124,58,237,0.15);
+  border: 1px dashed rgba(139,92,246,0.5);
+  border-radius: 10px;
+  padding: 10px 16px;
+  text-align: center;
+  font-size: 14px;
+  color: rgba(196,181,253,0.8);
+  margin-bottom: 14px;
+  font-style: italic;
+}
+
+/* ===== SCORE DISPLAY ===== */
+.score-row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+.score-gem {
+  background: rgba(13,31,13,0.7);
+  border: 1.5px solid rgba(212,160,23,0.4);
+  border-radius: 12px;
+  padding: 10px 20px;
+  text-align: center;
+}
+.score-num { font-family: 'Cinzel Decorative', serif; font-size: 24px; color: var(--gold-light); }
+.score-lbl { font-size: 11px; color: rgba(253,230,138,0.5); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+
+/* ===== TEACHER PANEL ===== */
+.teacher-panel {
+  background: rgba(10,20,10,0.8);
+  border: 1.5px solid rgba(212,160,23,0.3);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.teacher-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(90,170,74,0.2);
+  padding-bottom: 0;
+  flex-wrap: wrap;
+}
+.teacher-tab {
+  padding: 8px 18px;
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 14px;
+  color: rgba(253,230,138,0.5);
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  border: 1px solid transparent;
+  border-bottom: none;
+  background: transparent;
+  transition: all 0.2s;
+  margin-bottom: -1px;
+}
+.teacher-tab.active { color: var(--gold-light); background: rgba(45,90,39,0.4); border-color: rgba(90,170,74,0.3); }
+.teacher-tab:hover:not(.active) { color: var(--gold); }
+
+.teacher-content { display: none; }
+.teacher-content.active { display: block; }
+
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 13px; font-weight: 700; color: var(--gold); margin-bottom: 6px; letter-spacing: 0.5px; }
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  background: rgba(45,90,39,0.2);
+  border: 1px solid rgba(90,170,74,0.35);
+  border-radius: 8px;
+  color: var(--cream);
+  padding: 10px 14px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--gold); }
+.form-select option { background: #1a3a1a; }
+.form-textarea { min-height: 80px; resize: vertical; }
+
+.vocab-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.vocab-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(45,90,39,0.3);
+  border: 1px solid rgba(90,170,74,0.3);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+.vocab-remove {
+  background: rgba(185,28,28,0.4);
+  border: none;
+  color: #fca5a5;
+  border-radius: 50%;
+  width: 18px; height: 18px;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+
+.picture-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.pic-option {
+  background: rgba(45,90,39,0.2);
+  border: 2px solid rgba(90,170,74,0.2);
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 32px;
+  transition: all 0.2s;
+}
+.pic-option:hover, .pic-option.selected { background: rgba(45,90,39,0.5); border-color: var(--gold); }
+.pic-label { font-size: 10px; color: rgba(253,230,138,0.6); margin-top: 4px; }
+
+/* ===== PROGRESS STARS ===== */
+.star-row { display: flex; gap: 6px; justify-content: center; margin: 12px 0; }
+.star { font-size: 28px; opacity: 0.2; transition: all 0.4s; }
+.star.earned { opacity: 1; animation: starPop 0.4s ease; }
+@keyframes starPop { 0%{transform:scale(0) rotate(-30deg)} 80%{transform:scale(1.3) rotate(5deg)} 100%{transform:scale(1) rotate(0)} }
+
+/* ===== FOOTER DECO ===== */
+.footer-deco {
+  text-align: center;
+  font-size: 11px;
+  color: rgba(90,170,74,0.4);
+  margin-top: 20px;
+  letter-spacing: 1px;
+  padding: 16px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 600px) {
+  .slot-row { gap: 6px; }
+  .word-slot { min-width: 72px; font-size: 13px; }
+  .floating-word { font-size: 14px; padding: 6px 14px; }
+  .sentence-display { font-size: 17px; }
+}
+
+/* ===== TOOLTIP ===== */
+.tooltip-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.tooltip-overlay.show { display: flex; }
+.tooltip-box {
+  background: linear-gradient(135deg, #1a3a1a, #0d2a0d);
+  border: 2px solid var(--gold);
+  border-radius: 20px;
+  padding: 32px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+}
+.tooltip-title { font-family: 'Cinzel Decorative', serif; font-size: 20px; color: var(--gold-light); margin-bottom: 12px; }
+.tooltip-text { font-size: 15px; color: rgba(253,230,138,0.85); line-height: 1.7; margin-bottom: 20px; }
+.tooltip-close { padding: 10px 32px; background: var(--leaf-dark); border: 1.5px solid var(--gold); border-radius: 24px; color: var(--gold-light); font-family: 'Fredoka One', sans-serif; font-size: 15px; cursor: pointer; transition: background 0.2s; }
+.tooltip-close:hover { background: var(--leaf-mid); }
+
+/* ===== CERTIFICATE ===== */
+.cert-box {
+  display: none;
+  background: linear-gradient(135deg, rgba(45,90,39,0.4), rgba(13,31,13,0.8));
+  border: 2px solid var(--gold);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  margin-top: 16px;
+}
+.cert-box.show { display: block; animation: popIn 0.4s ease; }
+.cert-title { font-family: 'Cinzel Decorative', serif; font-size: 18px; color: var(--gold-light); margin-bottom: 8px; }
+.cert-sentence { font-family: 'Fredoka One', sans-serif; font-size: 20px; color: #fff; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 12px; margin: 10px 0; }
+
+</style>
+</head>
+<body>
+
+<!-- Jungle background -->
+<div class="jungle-bg">
+  <div class="vine"></div><div class="vine"></div><div class="vine"></div><div class="vine"></div><div class="vine"></div>
+  <span class="leaf-bg" style="top:12%;left:3%;animation-delay:0s">🌿</span>
+  <span class="leaf-bg" style="top:25%;right:4%;animation-delay:2s">🍃</span>
+  <span class="leaf-bg" style="top:60%;left:1%;animation-delay:1s;font-size:36px">🌱</span>
+  <span class="leaf-bg" style="top:70%;right:2%;animation-delay:3s;font-size:42px">🌿</span>
+  <span class="leaf-bg" style="top:40%;left:5%;animation-delay:4s;font-size:30px">🍂</span>
+</div>
+
+<!-- Fireflies -->
+<div class="firefly" style="top:20%;left:15%;animation-delay:0s;animation-duration:9s"></div>
+<div class="firefly" style="top:50%;left:70%;animation-delay:2s;animation-duration:7s"></div>
+<div class="firefly" style="top:35%;left:40%;animation-delay:4s;animation-duration:11s"></div>
+<div class="firefly" style="top:75%;left:25%;animation-delay:1s;animation-duration:8s"></div>
+<div class="firefly" style="top:15%;left:85%;animation-delay:3s;animation-duration:10s"></div>
+<div class="firefly" style="top:65%;left:55%;animation-delay:5s;animation-duration:6s"></div>
+
+<div class="app">
+
+  <!-- HEADER -->
+
+<!-- Right Side: Your Branding -->
+  <div class="user-branding">
+    Innovation By Dayang Nizreena 
+  </div>
+
+  <div class="hero">
+    <div class="hero-badge">🌿 MISS DAYANG CLASS 🌿</div>
+    <h1 class="hero-title">Jungle Word Quest</h1>
+    <p class="hero-sub">Build sentences, explore the jungle, become a Word Explorer!</p>
+  </div>
+
+  <!-- NAV TABS -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('builder')" id="tab-builder">
+      <span class="tab-icon">🏗️</span> Sentence Builder
+    </button>
+    <button class="nav-tab" onclick="showSection('game')" id="tab-game">
+      <span class="tab-icon">🎮</span> Word Catcher Game
+    </button>
+    <button class="nav-tab" onclick="showSection('teacher')" id="tab-teacher">
+      <span class="tab-icon">🔑</span> Teacher Panel
+    </button>
+  </div>
+
+  <!-- ===================== BUILDER SECTION ===================== -->
+  <div class="section active" id="section-builder">
+
+    <!-- Level Selector -->
+    <div class="level-bar">
+      <button class="level-btn low active" onclick="setLevel('low', this)">
+        🌱 Explorer (Low)
+      </button>
+      <button class="level-btn med" onclick="setLevel('med', this)">
+        🌳 Adventurer (Med)
+      </button>
+      <button class="level-btn high" onclick="setLevel('high', this)">
+        🦁 Jungle Master (High)
+      </button>
+    </div>
+
+    <!-- Level description -->
+    <div id="level-desc" style="text-align:center;font-size:13px;color:rgba(253,230,138,0.6);margin-bottom:16px;font-style:italic;">
+      🌱 Explorer: Build a simple 3-word sentence with colour guides!
+    </div>
+
+    <!-- Colour Key -->
+    <div class="colour-key" id="colour-key">
+      <span class="key-chip key-art">Article</span>
+      <span class="key-chip key-noun">Noun</span>
+      <span class="key-chip key-verb">Verb</span>
+      <span class="key-chip key-adj">Adjective</span>
+    </div>
+
+    <!-- Picture Prompt -->
+    <div class="picture-prompt" id="builder-picture">
+      <div class="picture-emoji" id="builder-emoji">🐯</div>
+      <div style="font-family:'Cinzel Decorative',serif;font-size:13px;color:var(--gold);margin-bottom:4px;">What is happening in the jungle?</div>
+      <div class="picture-caption" id="builder-caption">Use the words below to describe this jungle scene!</div>
+    </div>
+
+    <!-- Sentence Builder Card -->
+    <div class="card-wrap">
+      <div class="section-heading">🪄 Build Your Sentence</div>
+      <div class="section-sub">Click a word from the bank below to place it into the right coloured slot.</div>
+
+      <!-- Slot Row -->
+      <div class="slot-row" id="slot-row">
+        <!-- Filled dynamically -->
+      </div>
+
+      <!-- Sentence Display -->
+      <div class="sentence-display" id="sentence-display">
+        <span style="opacity:0.35;font-size:15px;">Your sentence will appear here...</span>
+      </div>
+
+      <!-- Stars -->
+      <div class="star-row" id="star-row">
+        <div class="star" id="star1">⭐</div>
+        <div class="star" id="star2">⭐</div>
+        <div class="star" id="star3">⭐</div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-row">
+        <button class="btn-jungle btn-hint" onclick="showHint()">💡 Hint</button>
+        <button class="btn-jungle btn-clear" onclick="clearSentence()">🗑️ Clear</button>
+        <button class="btn-jungle btn-check" onclick="checkSentence()">✅ Check!</button>
+      </div>
+
+      <!-- Feedback -->
+      <div class="feedback-box" id="feedback-box"></div>
+
+      <!-- Certificate -->
+      <div class="cert-box" id="cert-box">
+        <div class="cert-title">🏆 Jungle Explorer Award!</div>
+        <div style="font-size:13px;color:rgba(253,230,138,0.7);margin-bottom:8px;">You built a great sentence:</div>
+        <div class="cert-sentence" id="cert-sentence"></div>
+        <button class="btn-jungle btn-check" onclick="nextChallenge()" style="margin-top:12px;">Next Challenge 🌿</button>
+      </div>
+    </div>
+
+    <!-- Word Bank -->
+    <div class="word-bank">
+      <div class="word-bank-title">🌿 WORD BANK — Click a word to use it</div>
+      <div class="words-grid" id="words-grid">
+        <!-- Filled dynamically -->
+      </div>
+    </div>
+
+
+  </div><!-- end builder section -->
+
+  <!-- ===================== GAME SECTION ===================== -->
+  <div class="section" id="section-game">
+
+    <div class="card-wrap">
+      <div class="section-heading">🎮 Word Catcher Game</div>
+      <div class="section-sub">Words are floating through the jungle! Click them in the RIGHT ORDER to form the sentence shown below.</div>
+
+      <!-- Score -->
+      <div class="score-row">
+        <div class="score-gem">
+          <div class="score-num" id="game-score">0</div>
+          <div class="score-lbl">💎 Gems</div>
+        </div>
+        <div class="score-gem">
+          <div class="score-num" id="game-streak">0</div>
+          <div class="score-lbl">🔥 Streak</div>
+        </div>
+        <div class="score-gem">
+          <div class="score-num" id="game-level-display">1</div>
+          <div class="score-lbl">🌿 Level</div>
+        </div>
+      </div>
+
+      <!-- Game scene -->
+      <div id="game-area">
+        <div class="game-prompt" id="game-prompt">Click the words in order to complete the sentence!</div>
+        <div class="game-scene-img" id="game-emoji">🌴</div>
+        <!-- floating words injected here -->
+      </div>
+
+      <!-- Target sentence -->
+      <div class="game-target" id="game-target">Loading challenge...</div>
+
+      <!-- Built sentence -->
+      <div class="game-sentence-area" id="game-sentence-area">
+        <span style="opacity:0.35;font-size:15px;">Your words will appear here...</span>
+      </div>
+
+      <!-- Stars -->
+      <div class="star-row" id="game-star-row">
+        <div class="star" id="gstar1">⭐</div>
+        <div class="star" id="gstar2">⭐</div>
+        <div class="star" id="gstar3">⭐</div>
+      </div>
+
+      <!-- Game feedback -->
+      <div class="feedback-box" id="game-feedback"></div>
+
+      <!-- Game actions -->
+      <div class="action-row" style="margin-top:14px;">
+        <button class="btn-jungle btn-clear" onclick="clearGame()">🗑️ Clear</button>
+        <button class="btn-jungle btn-check" onclick="checkGame()">✅ Check!</button>
+        <button class="btn-jungle btn-hint" onclick="nextGameChallenge()">⏭️ Next</button>
+      </div>
+    </div>
+
+  </div><!-- end game section -->
+
+  <!-- ===================== TEACHER SECTION ===================== -->
+  <div class="section" id="section-teacher">
+
+    <div class="teacher-panel">
+      <div class="section-heading">🔑 Teacher Control Room</div>
+      <div class="section-sub">Customise vocabulary, pictures and challenges for your class.</div>
+
+      <div class="teacher-tabs">
+        <div class="teacher-tab active" onclick="showTeacherTab('vocab')">📚 Vocabulary</div>
+        <div class="teacher-tab" onclick="showTeacherTab('pictures')">🖼️ Pictures</div>
+        <div class="teacher-tab" onclick="showTeacherTab('sentences')">📝 Sentences</div>
+        <div class="teacher-tab" onclick="showTeacherTab('settings')">⚙️ Settings</div>
+      </div>
+
+      <!-- VOCAB TAB -->
+      <div class="teacher-content active" id="tc-vocab">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div>
+            <div class="form-group">
+              <label class="form-label">Word</label>
+              <input class="form-input" id="new-word" placeholder="e.g. tiger" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Word Type</label>
+              <select class="form-select" id="new-word-type">
+                <option value="noun">Noun (blue)</option>
+                <option value="verb">Verb (green)</option>
+                <option value="adj">Adjective (orange)</option>
+                <option value="art">Article (pink)</option>
+                <option value="prep">Preposition (purple)</option>
+                <option value="adv">Adverb (yellow)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Level</label>
+              <select class="form-select" id="new-word-level">
+                <option value="low">Low (Explorer)</option>
+                <option value="med">Medium (Adventurer)</option>
+                <option value="high">High (Jungle Master)</option>
+                <option value="all">All Levels</option>
+              </select>
+            </div>
+            <button class="btn-jungle btn-check" onclick="addVocab()" style="width:100%;justify-content:center;">➕ Add Word</button>
+          </div>
+          <div>
+            <label class="form-label">Current Vocabulary</label>
+            <div class="vocab-list" id="vocab-list-display"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PICTURES TAB -->
+      <div class="teacher-content" id="tc-pictures">
+        <div class="form-group">
+          <label class="form-label">Choose Picture / Scene Emoji</label>
+          <div class="picture-picker" id="picture-picker">
+            <!-- Filled dynamically -->
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Custom description (shown to pupils)</label>
+          <input class="form-input" id="custom-caption" placeholder="e.g. A tiger in the jungle" />
+        </div>
+        <button class="btn-jungle btn-check" onclick="applyPicture()" style="justify-content:center;">✅ Apply to Builder</button>
+      </div>
+
+      <!-- SENTENCES TAB -->
+      <div class="teacher-content" id="tc-sentences">
+        <div class="form-group">
+          <label class="form-label">Add target sentence for Word Catcher game</label>
+          <input class="form-input" id="new-sentence" placeholder="e.g. The tiger runs fast" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Scene emoji for this sentence</label>
+          <input class="form-input" id="new-sentence-emoji" placeholder="🐯" />
+        </div>
+        <button class="btn-jungle btn-check" onclick="addGameSentence()" style="justify-content:center;">➕ Add Sentence</button>
+        <div style="margin-top:16px;">
+          <label class="form-label">Game sentences:</label>
+          <div id="sentence-list-display" style="margin-top:8px;"></div>
+        </div>
+      </div>
+
+      <!-- SETTINGS TAB -->
+      <div class="teacher-content" id="tc-settings">
+        <div class="form-group">
+          <label class="form-label">Floating word speed (game)</label>
+          <select class="form-select" id="game-speed-setting">
+            <option value="slow">Slow (beginners)</option>
+            <option value="normal" selected>Normal</option>
+            <option value="fast">Fast (advanced)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Number of words on screen at once</label>
+          <select class="form-select" id="word-count-setting">
+            <option value="4">4 words</option>
+            <option value="6" selected>6 words</option>
+            <option value="8">8 words</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Show colour key?</label>
+          <select class="form-select" id="show-key-setting">
+            <option value="yes" selected>Yes (guided)</option>
+            <option value="no">No (challenge mode)</option>
+          </select>
+        </div>
+        <button class="btn-jungle btn-check" onclick="applySettings()" style="justify-content:center;">💾 Save Settings</button>
+        <div class="feedback-box info" id="settings-feedback" style="margin-top:12px;display:none;"></div>
+      </div>
+
+    </div>
+
+  </div><!-- end teacher section -->
+
+  <div class="footer-deco">🌿 JUNGLE WORD QUEST · ADVENTURE IN THE FOREST · SENTENCE BUILDER KIT 🌿</div>
+
+</div><!-- end app -->
+
+<!-- Tooltip overlay -->
+<div class="tooltip-overlay" id="tooltip-overlay">
+  <div class="tooltip-box">
+    <div class="tooltip-title" id="tooltip-title">Jungle Hint</div>
+    <div class="tooltip-text" id="tooltip-text"></div>
+    <button class="tooltip-close" onclick="closeTooltip()">Got it! 🌿</button>
+  </div>
+</div>
+
+<script>
+/* =============================================
+   DATA
+============================================= */
+let currentLevel = 'low';
+let selectedSlot = null;
+let gameScore = 0;
+let gameStreak = 0;
+let gameLevel = 1;
+let currentGameChallenge = 0;
+let gameSentenceBuilt = [];
+let currentGameWords = [];
+let selectedPictureEmoji = '🐯';
+let floatingWordIntervals = [];
+
+const levelConfig = {
+  low: {
+    desc: '🌱 Explorer: Build a simple 3-word sentence with colour guides!',
+    key: ['art','noun','verb'],
+    slots: [
+      {type:'art', label:'Article'},
+      {type:'noun', label:'Noun'},
+      {type:'verb', label:'Verb'}
+    ]
+  },
+  med: {
+    desc: '🌳 Adventurer: Build a 5-word sentence — adjectives join the adventure!',
+    key: ['art','adj','noun','verb','adv'],
+    slots: [
+      {type:'art', label:'Article'},
+      {type:'adj', label:'Adjective'},
+      {type:'noun', label:'Noun'},
+      {type:'verb', label:'Verb'},
+      {type:'adv', label:'Adverb'}
+    ]
+  },
+  high: {
+    desc: '🦁 Jungle Master: Build a full 7-word sentence like a true explorer!',
+    key: ['art','adj','noun','verb','adv','prep','noun'],
+    slots: [
+      {type:'art', label:'Article'},
+      {type:'adj', label:'Adjective'},
+      {type:'noun', label:'Noun (subject)'},
+      {type:'verb', label:'Verb'},
+      {type:'adv', label:'Adverb'},
+      {type:'prep', label:'Preposition'},
+      {type:'noun', label:'Noun (object)'}
+    ]
+  }
+};
+
+// Default vocabulary
+let vocabulary = [
+  {word:'The', type:'art', level:'all'},
+  {word:'A', type:'art', level:'all'},
+  {word:'An', type:'art', level:'all'},
+  {word:'tiger', type:'noun', level:'all'},
+  {word:'monkey', type:'noun', level:'all'},
+  {word:'parrot', type:'noun', level:'all'},
+  {word:'explorer', type:'noun', level:'med'},
+  {word:'river', type:'noun', level:'med'},
+  {word:'jungle', type:'noun', level:'all'},
+  {word:'tree', type:'noun', level:'all'},
+  {word:'vines', type:'noun', level:'high'},
+  {word:'waterfall', type:'noun', level:'high'},
+  {word:'runs', type:'verb', level:'all'},
+  {word:'jumps', type:'verb', level:'all'},
+  {word:'roars', type:'verb', level:'all'},
+  {word:'swings', type:'verb', level:'med'},
+  {word:'explores', type:'verb', level:'med'},
+  {word:'climbs', type:'verb', level:'high'},
+  {word:'big', type:'adj', level:'all'},
+  {word:'fast', type:'adj', level:'all'},
+  {word:'wild', type:'adj', level:'med'},
+  {word:'colourful', type:'adj', level:'med'},
+  {word:'fierce', type:'adj', level:'high'},
+  {word:'ancient', type:'adj', level:'high'},
+  {word:'quickly', type:'adv', level:'all'},
+  {word:'loudly', type:'adv', level:'med'},
+  {word:'gracefully', type:'adv', level:'high'},
+  {word:'silently', type:'adv', level:'high'},
+  {word:'in', type:'prep', level:'all'},
+  {word:'through', type:'prep', level:'med'},
+  {word:'across', type:'prep', level:'high'},
+  {word:'above', type:'prep', level:'high'},
+];
+
+// Default game sentences
+let gameSentences = [
+  {sentence:'The tiger runs quickly', emoji:'🐯', words:['The','tiger','runs','quickly','lion','flies','red']},
+  {sentence:'A big monkey jumps', emoji:'🐒', words:['A','big','monkey','jumps','swims','tiny','elephant']},
+  {sentence:'The wild parrot flies loudly', emoji:'🦜', words:['The','wild','parrot','flies','loudly','swims','large','river']},
+  {sentence:'A fierce tiger climbs the tree', emoji:'🌴', words:['A','fierce','tiger','climbs','the','tree','slowly','river','swings']},
+  {sentence:'The colourful parrot swings gracefully', emoji:'🦜', words:['The','colourful','parrot','swings','gracefully','roars','big','dark','above']},
+];
+// Current slots state
+let slotsFilled = {};
+
+/* =============================================
+   PICTURE OPTIONS
+============================================= */
+const pictureOptions = [
+  {emoji:'🐯', label:'Tiger'},
+  {emoji:'🐒', label:'Monkey'},
+  {emoji:'🦜', label:'Parrot'},
+  {emoji:'🌴', label:'Palm tree'},
+  {emoji:'🐊', label:'Crocodile'},
+  {emoji:'🦋', label:'Butterfly'},
+  {emoji:'🐍', label:'Snake'},
+  {emoji:'🦁', label:'Lion'},
+  {emoji:'🌿', label:'Jungle'},
+  {emoji:'🏞️', label:'River'},
+  {emoji:'🌺', label:'Flower'},
+  {emoji:'🐘', label:'Elephant'},
+  {emoji:'🦩', label:'Flamingo'},
+  {emoji:'🐸', label:'Frog'},
+  {emoji:'🌙', label:'Night jungle'},
+  {emoji:'☀️', label:'Sunny day'},
+];
+
+/* =============================================
+   SECTION NAVIGATION
+============================================= */
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+  if (id === 'game') initGame();
+  if (id === 'teacher') initTeacherPanel();
+}
+
+/* =============================================
+   LEVEL SYSTEM
+============================================= */
+function setLevel(level, btn) {
+  currentLevel = level;
+  document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('level-desc').textContent = levelConfig[level].desc;
+  clearSentence();
+  renderSlots();
+  renderWordBank();
+}
+
+/* =============================================
+   RENDER SLOTS
+============================================= */
+function renderSlots() {
+  slotsFilled = {};
+  const row = document.getElementById('slot-row');
+  const config = levelConfig[currentLevel];
+  row.innerHTML = '';
+  config.slots.forEach((slot, i) => {
+    const key = slot.type + '_' + i;
+    slotsFilled[key] = null;
+    const div = document.createElement('div');
+    div.className = 'word-slot ' + slot.type + '-slot';
+    div.id = 'slot-' + key;
+    div.innerHTML = '<span class="slot-label">' + slot.label + '</span>';
+    div.onclick = () => removeFromSlot(key);
+    row.appendChild(div);
+  });
+  renderColourKey();
+  updateSentenceDisplay();
+}
+
+function renderColourKey() {
+  const cfg = levelConfig[currentLevel];
+  const types = [...new Set(cfg.key)];
+  const keyMap = {
+    art: {cls:'key-art', lbl:'Article'},
+    noun: {cls:'key-noun', lbl:'Noun'},
+    verb: {cls:'key-verb', lbl:'Verb'},
+    adj: {cls:'key-adj', lbl:'Adjective'},
+    prep: {cls:'key-prep', lbl:'Preposition'},
+    adv: {cls:'key-adv', lbl:'Adverb'},
+  };
+  const key = document.getElementById('colour-key');
+  key.innerHTML = types.map(t => `<span class="key-chip ${keyMap[t].cls}">${keyMap[t].lbl}</span>`).join('');
+}
+
+/* =============================================
+   WORD BANK
+============================================= */
+function renderWordBank() {
+  const lvl = currentLevel;
+  const cfg = levelConfig[lvl];
+  const neededTypes = [...new Set(cfg.slots.map(s => s.type))];
+  const grid = document.getElementById('words-grid');
+  // Get words for this level
+  const words = vocabulary.filter(v => (v.level === lvl || v.level === 'all') && neededTypes.includes(v.type));
+  // Add some distractors
+  grid.innerHTML = '';
+  words.forEach((w, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'word-chip ' + w.type;
+    chip.textContent = w.word;
+    chip.id = 'chip-' + i;
+    chip.onclick = () => placeWord(w, i);
+    grid.appendChild(chip);
+  });
+}
+
+function placeWord(wordObj, chipIndex) {
+  const cfg = levelConfig[currentLevel];
+  const slots = cfg.slots;
+  // Find first empty slot of matching type
+  for (let i = 0; i < slots.length; i++) {
+    const key = slots[i].type + '_' + i;
+    if (slots[i].type === wordObj.type && !slotsFilled[key]) {
+      slotsFilled[key] = wordObj;
+      const slotEl = document.getElementById('slot-' + key);
+      slotEl.innerHTML = `<span style="font-size:15px">${wordObj.word}</span><span class="slot-label">${slots[i].label}</span>`;
+      slotEl.classList.add('filled');
+      document.getElementById('chip-' + chipIndex).classList.add('used');
+      updateSentenceDisplay();
+      return;
+    }
+  }
+  showFeedback('⚠️ No matching slot for that word type! Check the colours.', 'info');
+}
+
+function removeFromSlot(key) {
+  if (!slotsFilled[key]) return;
+  const word = slotsFilled[key].word;
+  slotsFilled[key] = null;
+  const slotEl = document.getElementById('slot-' + key);
+  const cfg = levelConfig[currentLevel];
+  const idx = Object.keys(slotsFilled).indexOf(key);
+  slotEl.innerHTML = `<span class="slot-label">${cfg.slots[idx].label}</span>`;
+  slotEl.classList.remove('filled');
+  // Re-enable chip
+  document.querySelectorAll('.word-chip').forEach(c => {
+    if (c.textContent === word) c.classList.remove('used');
+  });
+  updateSentenceDisplay();
+}
+
+/* =============================================
+   SENTENCE DISPLAY
+============================================= */
+function updateSentenceDisplay() {
+  const display = document.getElementById('sentence-display');
+  const words = Object.values(slotsFilled).filter(Boolean);
+  if (!words.length) {
+    display.innerHTML = '<span style="opacity:0.35;font-size:15px;">Your sentence will appear here...</span>';
+    return;
+  }
+  display.innerHTML = words.map(w =>
+    `<span class="sentence-word-display ${w.type}">${w.word}</span>`
+  ).join(' ');
+}
+
+/* =============================================
+   CHECK & CLEAR
+============================================= */
+function clearSentence() {
+  Object.keys(slotsFilled).forEach(k => slotsFilled[k] = null);
+  renderSlots();
+  renderWordBank();
+  document.getElementById('feedback-box').className = 'feedback-box';
+  document.getElementById('cert-box').className = 'cert-box';
+  resetStars('star');
+}
+
+function checkSentence() {
+  const slots = levelConfig[currentLevel].slots;
+  const keys = Object.keys(slotsFilled);
+  const filled = keys.filter(k => slotsFilled[k] !== null);
+  if (filled.length === 0) {
+    showFeedback('🌿 Start by clicking words from the Word Bank below!', 'info');
+    return;
+  }
+  if (filled.length < slots.length) {
+    showFeedback('⚠️ Some slots are still empty! Fill all ' + slots.length + ' slots to complete your sentence.', 'error');
+    return;
+  }
+  // All filled!
+  const sentence = Object.values(slotsFilled).map(w => w.word).join(' ');
+  showFeedback('🏆 Excellent work, Jungle Explorer! Your sentence is complete!', 'success');
+  earnStars(3);
+  const certBox = document.getElementById('cert-box');
+  certBox.className = 'cert-box show';
+  document.getElementById('cert-sentence').textContent = sentence + '.';
+}
+
+function showHint() {
+  const hints = {
+    low: 'Try: "The" (article, pink) + "tiger" (noun, blue) + "runs" (verb, green)',
+    med: 'Try: "The" + "wild" (adjective, orange) + "monkey" + "swings" + "quickly" (adverb, yellow)',
+    high: 'Try: "A" + "fierce" + "tiger" + "climbs" + "silently" + "through" (preposition, purple) + "vines"'
+  };
+  showTooltip('💡 Jungle Hint', hints[currentLevel]);
+}
+
+function nextChallenge() {
+  clearSentence();
+  const emojis = ['🐯','🐒','🦜','🌴','🐊','🦁','🐍','🦋'];
+  const captions = [
+    'A tiger prowls through the jungle!',
+    'A monkey swings from tree to tree!',
+    'A colourful parrot calls out!',
+    'An ancient tree stands tall!',
+    'A crocodile waits by the river!',
+    'A lion roars in the clearing!',
+    'A snake slides through the grass!',
+    'A butterfly dances in the breeze!',
+  ];
+  const r = Math.floor(Math.random() * emojis.length);
+  document.getElementById('builder-emoji').textContent = emojis[r];
+  document.getElementById('builder-caption').textContent = captions[r];
+}
+
+function showFeedback(msg, type) {
+  const fb = document.getElementById('feedback-box');
+  fb.textContent = msg;
+  fb.className = 'feedback-box ' + type;
+  setTimeout(() => {
+    if (type !== 'success') fb.className = 'feedback-box';
+  }, 3500);
+}
+
+/* =============================================
+   STARS
+============================================= */
+function earnStars(n, prefix='star') {
+  for (let i = 1; i <= n; i++) {
+    setTimeout(() => {
+      const el = document.getElementById(prefix + i);
+      if (el) el.classList.add('earned');
+    }, i * 200);
+  }
+}
+
+function resetStars(prefix='star') {
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById(prefix + i);
+    if (el) el.classList.remove('earned');
+  }
+}
+
+/* =============================================
+   TOOLTIP
+============================================= */
+function showTooltip(title, text) {
+  document.getElementById('tooltip-title').textContent = title;
+  document.getElementById('tooltip-text').textContent = text;
+  document.getElementById('tooltip-overlay').classList.add('show');
+}
+function closeTooltip() {
+  document.getElementById('tooltip-overlay').classList.remove('show');
+}
+
+/* =============================================
+   GAME SYSTEM
+============================================= */
+function initGame() {
+  clearFloatingWords();
+  currentGameChallenge = Math.floor(Math.random() * gameSentences.length);
+  loadGameChallenge();
+}
+
+function loadGameChallenge() {
+  gameSentenceBuilt = [];
+  const challenge = gameSentences[currentGameChallenge];
+  document.getElementById('game-emoji').textContent = challenge.emoji;
+  document.getElementById('game-target').textContent = '🎯 Form this sentence: "' + challenge.sentence + '"';
+  document.getElementById('game-sentence-area').innerHTML = '<span style="opacity:0.35;font-size:15px;">Click the floating words in order...</span>';
+  document.getElementById('game-feedback').className = 'feedback-box';
+  resetStars('gstar');
+  clearFloatingWords();
+  spawnFloatingWords(challenge);
+}
+
+function spawnFloatingWords(challenge) {
+  const area = document.getElementById('game-area');
+  const areaW = area.offsetWidth || 600;
+  const areaH = area.offsetHeight || 400;
+
+  const words = [...challenge.words];
+  // Shuffle display
+  words.sort(() => Math.random() - 0.5);
+
+  words.forEach((word, i) => {
+    const span = document.createElement('div');
+    span.className = 'floating-word';
+    // Colour by word type
+    const type = getWordType(word);
+    const colours = {
+      art: {bg:'rgba(190,24,93,0.35)',border:'#ec4899',color:'#f9a8d4'},
+      noun: {bg:'rgba(29,78,216,0.35)',border:'#3b82f6',color:'#bfdbfe'},
+      verb: {bg:'rgba(21,128,61,0.35)',border:'#22c55e',color:'#bbf7d0'},
+      adj: {bg:'rgba(194,65,12,0.35)',border:'#f97316',color:'#fed7aa'},
+      adv: {bg:'rgba(161,98,7,0.35)',border:'#eab308',color:'#fef08a'},
+      prep: {bg:'rgba(124,58,237,0.35)',border:'#8b5cf6',color:'#ede9fe'},
+      other: {bg:'rgba(90,90,90,0.3)',border:'#9ca3af',color:'#e5e7eb'},
+    };
+    const c = colours[type] || colours.other;
+    span.style.background = c.bg;
+    span.style.borderColor = c.border;
+    span.style.color = c.color;
+    span.textContent = word;
+
+    // Random position
+    const maxX = Math.max(40, areaW - 140);
+    const maxY = Math.max(60, areaH - 160);
+    const x = 20 + Math.random() * maxX;
+    const y = 50 + Math.random() * maxY;
+    span.style.left = x + 'px';
+    span.style.top = y + 'px';
+
+    // Random animation delay/duration
+    const dur = 3 + Math.random() * 3;
+    const delay = Math.random() * 2;
+    span.style.animationDuration = dur + 's,' + (1.5 + Math.random()) + 's';
+    span.style.animationDelay = delay + 's,' + Math.random() + 's';
+
+    span.dataset.word = word;
+    span.onclick = () => catchWord(span, word);
+    area.appendChild(span);
+  });
+}
+
+function getWordType(word) {
+  const found = vocabulary.find(v => v.word.toLowerCase() === word.toLowerCase());
+  return found ? found.type : 'other';
+}
+
+function catchWord(el, word) {
+  if (el.classList.contains('caught')) return;
+  el.classList.add('caught');
+  gameSentenceBuilt.push(word);
+  updateGameDisplay();
+  setTimeout(() => el.remove(), 400);
+}
+
+function updateGameDisplay() {
+  const area = document.getElementById('game-sentence-area');
+  if (!gameSentenceBuilt.length) {
+    area.innerHTML = '<span style="opacity:0.35;font-size:15px;">Click the floating words in order...</span>';
+    return;
+  }
+  area.innerHTML = gameSentenceBuilt.map(w => {
+    const t = getWordType(w);
+    const colorMap = {art:'#f9a8d4',noun:'#bfdbfe',verb:'#bbf7d0',adj:'#fed7aa',adv:'#fef08a',prep:'#ede9fe',other:'#e5e7eb'};
+    return `<span style="color:${colorMap[t]||'#fff'}">${w}</span>`;
+  }).join(' ');
+}
+
+function checkGame() {
+  const challenge = gameSentences[currentGameChallenge];
+  const target = challenge.sentence.toLowerCase().split(' ');
+  const built = gameSentenceBuilt.map(w => w.toLowerCase());
+
+  if (!built.length) {
+    showGameFeedback('🌿 Catch some floating words first!', 'info');
+    return;
+  }
+
+  const correct = JSON.stringify(built) === JSON.stringify(target);
+  if (correct) {
+    gameScore += 10 + gameStreak * 2;
+    gameStreak++;
+    if (gameStreak % 3 === 0) gameLevel++;
+    updateGameScore();
+    earnStars(3, 'gstar');
+    showGameFeedback('🏆 Perfect! +' + (10 + (gameStreak-1)*2) + ' gems! You caught all the right words!', 'success');
+    setTimeout(() => nextGameChallenge(), 2200);
+  } else if (built.every((w, i) => target[i] === w) && built.length < target.length) {
+    showGameFeedback('🌿 Good so far! Keep catching more words!', 'info');
+  } else {
+    gameStreak = 0;
+    updateGameScore();
+    showGameFeedback('❌ Not quite right. The sentence should be: "' + challenge.sentence + '" — try again!', 'error');
+  }
+}
+
+function clearGame() {
+  gameSentenceBuilt = [];
+  updateGameDisplay();
+  document.getElementById('game-feedback').className = 'feedback-box';
+  clearFloatingWords();
+  spawnFloatingWords(gameSentences[currentGameChallenge]);
+}
+
+function nextGameChallenge() {
+  currentGameChallenge = (currentGameChallenge + 1) % gameSentences.length;
+  loadGameChallenge();
+}
+
+function clearFloatingWords() {
+  const area = document.getElementById('game-area');
+  area.querySelectorAll('.floating-word').forEach(el => el.remove());
+}
+
+function updateGameScore() {
+  document.getElementById('game-score').textContent = gameScore;
+  document.getElementById('game-streak').textContent = gameStreak;
+  document.getElementById('game-level-display').textContent = gameLevel;
+}
+
+function showGameFeedback(msg, type) {
+  const fb = document.getElementById('game-feedback');
+  fb.textContent = msg;
+  fb.className = 'feedback-box ' + type;
+  setTimeout(() => {
+    if (type !== 'success') fb.className = 'feedback-box';
+  }, 3000);
+}
+
+/* =============================================
+   TEACHER PANEL
+============================================= */
+function showTeacherTab(tab) {
+  document.querySelectorAll('.teacher-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.teacher-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tc-' + tab).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function initTeacherPanel() {
+  renderVocabList();
+  renderPicturePicker();
+  renderSentenceList();
+}
+
+function addVocab() {
+  const word = document.getElementById('new-word').value.trim();
+  const type = document.getElementById('new-word-type').value;
+  const level = document.getElementById('new-word-level').value;
+  if (!word) return;
+  vocabulary.push({word, type, level});
+  document.getElementById('new-word').value = '';
+  renderVocabList();
+  renderWordBank();
+}
+
+function renderVocabList() {
+  const list = document.getElementById('vocab-list-display');
+  list.innerHTML = vocabulary.slice(-20).map((v, i) =>
+    `<div class="vocab-item">
+      <span class="word-chip ${v.type}" style="padding:2px 10px;font-size:12px;">${v.word}</span>
+      <span style="font-size:11px;color:rgba(253,230,138,0.5)">${v.level}</span>
+      <button class="vocab-remove" onclick="removeVocab(${vocabulary.length - 20 + i})">×</button>
+    </div>`
+  ).join('');
+}
+
+function removeVocab(i) {
+  vocabulary.splice(i, 1);
+  renderVocabList();
+  renderWordBank();
+}
+
+function renderPicturePicker() {
+  const picker = document.getElementById('picture-picker');
+  picker.innerHTML = pictureOptions.map((p, i) =>
+    `<div class="pic-option ${p.emoji === selectedPictureEmoji ? 'selected' : ''}" onclick="selectPicture('${p.emoji}', this)">
+      ${p.emoji}
+      <div class="pic-label">${p.label}</div>
+    </div>`
+  ).join('');
+}
+
+function selectPicture(emoji, el) {
+  selectedPictureEmoji = emoji;
+  document.querySelectorAll('.pic-option').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function applyPicture() {
+  const caption = document.getElementById('custom-caption').value || 'Describe this jungle scene!';
+  document.getElementById('builder-emoji').textContent = selectedPictureEmoji;
+  document.getElementById('builder-caption').textContent = caption;
+  showSection('builder');
+}
+
+function addGameSentence() {
+  const s = document.getElementById('new-sentence').value.trim();
+  const emoji = document.getElementById('new-sentence-emoji').value.trim() || '🌿';
+  if (!s) return;
+  const words = s.split(' ');
+  // Add extra distractors
+  const extras = vocabulary.map(v => v.word).filter(w => !words.includes(w)).slice(0, 4);
+  gameSentences.push({sentence: s, emoji, words: [...words, ...extras]});
+  document.getElementById('new-sentence').value = '';
+  document.getElementById('new-sentence-emoji').value = '';
+  renderSentenceList();
+}
+
+function renderSentenceList() {
+  const list = document.getElementById('sentence-list-display');
+  list.innerHTML = gameSentences.map((s, i) =>
+    `<div class="vocab-item" style="width:100%;flex-direction:column;align-items:flex-start;gap:4px;">
+      <div style="display:flex;align-items:center;gap:8px;width:100%;justify-content:space-between;">
+        <span>${s.emoji} <strong style="color:var(--gold-pale)">${s.sentence}</strong></span>
+        <button class="vocab-remove" onclick="removeGameSentence(${i})" style="flex-shrink:0">×</button>
+      </div>
+    </div>`
+  ).join('');
+}
+
+function removeGameSentence(i) {
+  gameSentences.splice(i, 1);
+  renderSentenceList();
+}
+
+function applySettings() {
+  const fb = document.getElementById('settings-feedback');
+  fb.textContent = '✅ Settings saved! They will apply on the next game round.';
+  fb.style.display = 'block';
+  setTimeout(() => fb.style.display = 'none', 2500);
+}
+
+/* =============================================
+   INIT
+============================================= */
+document.addEventListener('DOMContentLoaded', () => {
+  renderSlots();
+  renderWordBank();
+});
+</script>
+
+</body>
+</html>
